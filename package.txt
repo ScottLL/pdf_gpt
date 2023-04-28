@@ -1,0 +1,5 @@
+poppler-utils
+libmagic-dev
+portaudio19-dev
+espeak
+flac

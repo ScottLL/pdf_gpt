@@ -1,0 +1,8 @@
+langchain
+openai
+PyPDF2
+unstructured[local-inference]
+pinecone-client
+chromadb
+tiktoken
+uvicorn
