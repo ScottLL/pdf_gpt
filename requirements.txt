@@ -10,3 +10,4 @@ scikit-learn
 huggingface_hub
 transformers
 tensorflow
+fastapi==0.95.0
