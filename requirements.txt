@@ -6,3 +6,7 @@ pinecone-client
 chromadb
 tiktoken
 uvicorn
+scikit-learn
+huggingface_hub
+transformers
+tensorflow
