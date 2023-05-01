@@ -7,6 +7,12 @@ The final webapp is in [here](https://pdf-gpt.azurewebsites.net/)
 
 *note: 
     1. you need to get your OpenAI API keys from [OpenAI](https://platform.openai.com/account/api-keys). Read more about how to get the OpenAI API keys from [windowscentral](https://www.windowscentral.com/software-apps/how-to-get-an-openai-api-key)
+
+## Developing map
+![Screenshot 2023-05-01 at 7 17 16 PM](https://user-images.githubusercontent.com/43226003/235547769-c9edb13b-7a26-4385-946a-d7ddb0ae9d88.png)
+
+
+
 ## Features
 
 - Upload and process PDF files
