@@ -5,7 +5,8 @@ PDF-GPT is a web application that uses OpenAI's GPT to extract and process infor
 The final webapp is in [here](https://pdf-gpt.azurewebsites.net/)
 ![app](pic/1.png)
 
-
+*note: 
+    1. you need to get your OpenAI API keys from [OpenAI](https://platform.openai.com/account/api-keys). Read more about how to get the OpenAI API keys from [windowscentral](https://www.windowscentral.com/software-apps/how-to-get-an-openai-api-key)
 ## Features
 
 - Upload and process PDF files
