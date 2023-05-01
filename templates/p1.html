@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function showFunction(id) {
+                $("#detection_result").hide();
+                $(".function").hide();
+                $("#" + id).show();
+            }
+        
+            $("#function_choice").change(function () {
+                var choice = $(this).val();
+                showFunction(choice);
+            });
+        
+            $("#api_key").change(function () {
+                var api_key = $(this).val();
+                $("input[name='openai_api_key']").val(api_key);
+            });
+        
+            showFunction($("#function_choice").val());
+        
+            $("form[action='/pdf']").submit(function (event) {
+                event.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: new FormData(this),
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $("#conversation_list").append('<li>Question: ' + $('#question').val() + '<br>Answer: ' + response.answer + '</li>');
+                    },
+                    
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+                
+                
+            });
+
+            $("form[action='/generate']").submit(function (event) {
+                event.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: new FormData(this),
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $("#generated_face").show();
+                        var newImg = new Image();
+                        newImg.src = "data:image/png;base64," + response.img_data;
+                        newImg.onload = function() {
+                            $("#face_image").attr("src", newImg.src);
+                        };
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+                
+                
+            });
+            
+            $("#file_generate").change(function () {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#uploaded_face").show();
+                    $("#uploaded_image").attr("src", e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            });
+            
+            $("#file_recognize").change(function () {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#uploaded_face_recognize").show();
+                    $("#uploaded_image_recognize").attr("src", e.target.result);
+                };
+                reader.readAsDataURL(this.files[0]);
+            });
+            
+            $("form[action='/recognize']").submit(function(event) {
+                event.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: new FormData(this),
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        $("#detection_result").show();
+                        var predictionText = "Prediction: " + response.prediction + "<br>Probability score: " + (response.probability * 100).toFixed(2) + "%";
+                        $("#result_text").html(predictionText);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div>
+        <label for="api_key">Enter your OpenAI API Key:</label>
+        <input type="text" id="api_key" name="api_key" placeholder="Enter your API key">
+    </div>
+    <div>
+        <label for="function_choice">Select a function:</label>
+        <select name="function_choice" id="function_choice">
+            <option value="pdf">PDF and Text Question Answering</option>
+            <option value="generate">AI Human Face Generator</option>
+            <option value="recognize">Real vs AI Human Face Detection</option>
+        </select>
+    </div>
+    <div id="pdf" class="function">
+        <h1>PDF and Text Question Answering</h1>
+        <form action="/pdf" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="openai_api_key" id="pdf_openai_api_key">
+            <label for="file">Upload a PDF file:</label>
+            <input type="file" name="file" id="file" accept=".pdf">
+            <br>
+            <label for="question">Enter your question:</label>
+            <input type="text" name="question" id="question" placeholder="Enter your question">
+            <br>
+            <input type="submit" value="Upload PDF and Get Answer">
+        </form>
+        <div id="conversation">
+            <h2>Conversation</h2>
+            <ul id="conversation_list"></ul>
+        </div>
+    </div>
+    <div id="generate" class="function">
+        <h1>AI Human Face Generator</h1>
+        <div id="uploaded_face" style="display:none;">
+            <h2>Uploaded Face</h2>
+            <img id="uploaded_image" src="" alt="Uploaded Human Face">
+        </div>
+        
+        <form action="/generate" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="openai_api_key" id="generate_openai_api_key">
+            <label for="file_generate">Upload a human face image (png or jpg):</label>
+            <input type="file" name="file_generate" id="file_generate" accept="image/png, image/jpeg">
+            <input type="submit" value="Generate AI Human Face">
+        </form>
+        
+        <div id="generated_face" style="display:none;">
+            <h2>Generated Face</h2>
+            <img id="face_image" src="" alt="Generated AI Human Face">
+        </div>
+    </div>
+    <div id="recognize" class="function">
+        <h1>Real vs AI Human Face Detection</h1>
+        <div id="uploaded_face_recognize" style="display:none;">
+            <h2>Uploaded Face</h2>
+            <img id="uploaded_image_recognize" src="" alt="Uploaded Human Face">
+        </div>        
+        <form action="/recognize" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="openai_api_key" id="recognize_openai_api_key">
+            <label for="file_recognize">Upload a human face image (png or jpg):</label>
+            <input type="file" name="file_recognize" id="file_recognize" accept="image/png, image/jpeg">
+            <br>
+            <input type="submit" value="Detect Real or AI Human Face">
+        </form>
+        <div id="detection_result" style="display:none;">
+            <h2>Detection Result</h2>
+            <p id="result_text">Probability score: N/A</p>
+        </div>
+    </div>
+</body>
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class=flashes>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+</html>
+
+

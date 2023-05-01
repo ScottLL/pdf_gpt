@@ -1,13 +1,11 @@
 langchain
 openai
 PyPDF2
+unstructured
 unstructured[local-inference]
 pinecone-client
-chromadb
 tiktoken
 uvicorn
-scikit-learn
-huggingface_hub
-transformers
-tensorflow
-fastapi==0.95.0
+flask
+Werkzeug
+gunicorn

@@ -43,15 +43,25 @@ def generate_image(input_image):
 
 
 
+
 # Function to detect if an image is of a real human face or an AI generated face
 def get_prediction(image):
     model_key = "poojakabber1997/ResNetDallE2Fakes"
     input_shape = (1, 3, 180, 180)
     model = models[model_key]
+    channels_first = False
     image = Image.fromarray(image.astype('uint8'), 'RGB').resize(input_shape[2:])
     image = np.array(image).astype(np.float32)
     image = image / 255
+
+    if channels_first:
+        image = np.transpose(image, (2, 0, 1))
+
     image = np.expand_dims(image, axis=0)
+
+    if channels_first:
+        image = np.transpose(image, (0, 2, 3, 1))
+
     prediction = model.predict(image)
     real_prob = prediction[0][0]
     fake_prob = 1 - real_prob
@@ -60,4 +70,5 @@ def get_prediction(image):
         return "Real Human Face", real_prob
     else:
         return "AI Generated Face", fake_prob
+
 

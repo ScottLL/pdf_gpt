@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF-GPT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5/5v5z453/0w2aj/5/IS3X59jI7AB0b5pBIm5ypW8" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function showFunction(id) {
+                $(".pdf-function-container").hide();
+                $("#" + id).show();
+            }
+
+            $("#function_choice").change(function () {
+                var choice = $(this).val();
+                showFunction(choice);
+            });
+
+            $("#api_key").change(function () {
+                var api_key = $(this).val();
+                $("input[name='openai_api_key']").val(api_key);
+            });
+
+            $("#submit_api_key").click(function () {
+                var api_key = $("#api_key").val();
+                if (api_key) {
+                    $(".api-key-container").hide();
+                    $("input[name='openai_api_key']").val(api_key);
+                    $(".pdf-function-container").show();
+                } else {
+                    alert("Please enter your OpenAI API key.");
+                }
+            });
+
+            showFunction($("#function_choice").val());
+
+            $("#upload_pdf_btn").click(function () {
+                var form = $("#upload_pdf_form");
+                $("#loading_icon").show(); // Show the loading icon
+                $.ajax({
+                    type: "POST",
+                    url: "/upload_pdf",
+                    data: new FormData(form[0]),
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        $("#loading_icon").hide(); // Hide the loading icon
+                        if (response.status === "success") {
+                            $("#upload_success").show(); // Show the success message
+                            $("#get_answer_btn").prop("disabled", false);
+                        } else {
+                            alert("Error: " + response.message);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        $("#loading_icon").hide(); // Hide the loading icon
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+            });
+            
+            
+            
+            $("#get_answer_btn").click(function () {
+                var question = $("#question").val();
+                var api_key = $("#api_key").val();
+                $.ajax({
+                    type: "POST",
+                    url: "/get_answer",
+                    data: JSON.stringify({ question: question, openai_api_key: api_key }),
+                    contentType: "application/json",
+                    success: function (response) {
+                        $("#conversation_list").append('<li><span class="question">Question: ' + question + '</span><br>Answer: ' + response.answer + '</li>');
+                    },
+            
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+            });
+            
+             
+            $("form[action='/pdf']").submit(function (event) {
+                event.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    type: form.attr('method'),
+                    url: form.attr('action'),
+                    data: new FormData(this),
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $("#conversation_list").append('<li><span class="question">Question: ' + $('#question').val() + '</span><br>Answer: ' + response.answer + '</li>');
+                    },
+            
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        alert("Error: " + errorThrown + ", " + textStatus + ", " + jqXHR.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <h1>PDF-GPT</h1>
+        <div class="api-key-container">
+            <label for="api_key">Enter your OpenAI API Key:</label>
+            <input type="text" id="api_key" name="api_key" placeholder="Enter your API key">
+            <button id="submit_api_key">Submit</button>
+        </div>
+        <div class="pdf-function-container" id="pdf-function-container" style="display: none;">
+            <h3>Upload your PDF and ask Questions</h3>
+            <form id="upload_pdf_form" enctype="multipart/form-data">
+                <input type="hidden" name="openai_api_key" id="pdf_openai_api_key">
+                <label for="file">Upload a PDF file:</label>
+                <input type="file" name="file" id="file" accept=".pdf">
+                <br>
+                <div class="button-container">
+                    <input type="button" id="upload_pdf_btn" value="Upload PDF">
+                    <i class="fas fa-spinner fa-spin" id="loading_icon" style="display: none;"></i>
+                </div>
+                <p class="success-message" id="upload_success" style="display: none;">PDF uploaded successfully, now you can ask questions</p>
+            </form>
+            <form id="get_answer_form">
+                <label for="question">Enter your question:</label>
+                <input type="text" name="question" id="question" placeholder="Enter your question">
+                <br>
+                <input type="button" id="get_answer_btn" value="Get Answer" disabled>
+            </form>
+            <div id="conversation">
+                <h2>Conversation</h2>
+                <ul id="conversation_list"></ul>
+            </div>
+        </div>
+    </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>
